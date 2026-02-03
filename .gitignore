@@ -53,3 +53,7 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 /.claude/settings.local.json
+
+# manually added
+/.vs/CallGraphBuilder
+out/

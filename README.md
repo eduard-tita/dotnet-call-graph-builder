@@ -1,4 +1,4 @@
-﻿# Call Graph Builder
+﻿# .NET Call Graph Builder
 
 ## Project Overview
 
@@ -138,3 +138,34 @@ RTA typically runs iteratively:
 │ False positives │ More                      │ Fewer                      │
 └─────────────────┴───────────────────────────┴────────────────────────────┘
 ```
+
+## Configuration
+
+The application reads settings from a `config.json` file:
+
+```json
+{
+  "BinaryPath": "path/to/assemblies",
+  "Namespaces": ["MyApp"],
+  "Algorithm": "CHA",
+  "EntrypointStrategy": "DOTNET_MAIN",
+  "JsonOutputPath": "path/to/output/call-graph.json"
+}
+```
+
+| Property | Description |
+|----------|-------------|
+| `BinaryPath` | Directory containing .NET assemblies (.dll files) to analyze |
+| `Namespaces` | Filter to limit analysis scope (currently unused) |
+| `Algorithm` | Analysis algorithm: `CHA` (implemented) or `RTA` (not yet implemented) |
+| `EntrypointStrategy` | How to determine analysis starting points: `DOTNET_MAIN`, `PUBLIC_CONCRETE`, `ACCESSIBLE_CONCRETE`, `CONCRETE`, `ALL` |
+| `JsonOutputPath` | File path for JSON output |
+
+**Note:** Currently only `DOTNET_MAIN` entrypoint strategy is implemented.
+
+## Output
+
+The tool produces two output formats:
+
+1. **JSON** - Complete call graph with nodes (methods) and edges (caller→callee relationships)
+2. **DOT** - GraphViz format for visualization (limited to configurable edge count)

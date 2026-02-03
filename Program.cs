@@ -23,7 +23,7 @@ namespace CallGraphBuilder
 
         static async Task Main(string[] args)
         {
-            string configFilePath = "D:\\projects-misc\\call-graph-builder\\CallGraphBuilder\\config.json"; // Path to the configuration file
+            string configFilePath = "D:\\projects-misc\\dotnet-call-graph-builder\\config.json"; // Path to the configuration file
             var config = await Config.LoadFromFileAsync(configFilePath);
             config.PrintOut(logger);
             
@@ -35,7 +35,7 @@ namespace CallGraphBuilder
             WriteCallGraphToJson(callGraph, config.JsonOutputPath);
 
             // Useful for visualization, but you have to limit the number of edges exported
-            WriteCallGraphToDot(callGraph, "D:\\projects-misc\\call-graph-builder\\CallGraphBuilder\\graph.dot", 50);
+            WriteCallGraphToDot(callGraph, "D:\\projects-misc\\dotnet-call-graph-builder\\out\\graph.dot", 50);
         }
 
         private static void WriteCallGraphToDot(CallGraph callGraph, string filePath, int edgeCount)

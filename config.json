@@ -3,5 +3,5 @@
   "Namespaces": [ "ConsoleApp" ],
   "Algorithm": "CHA",
   "EntrypointStrategy": "DOTNET_MAIN",
-  "JsonOutputPath": "D:\\projects-misc\\call-graph-builder\\CallGraphBuilder\\call-graph.json"
+  "JsonOutputPath": "D:\\projects-misc\\dotnet-call-graph-builder\\out\\call-graph.json"
 }

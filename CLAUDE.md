@@ -60,7 +60,8 @@ CallGraph.cs         Graph data structure containing Node and Edge collections
   "BinaryPath": "path/to/assemblies",
   "Namespaces": ["MyApp"],
   "Algorithm": "CHA",
-  "EntrypointStrategy": "DOTNET_MAIN"
+  "EntrypointStrategy": "DOTNET_MAIN",
+  "JsonOutputPath": "path/to/output/call-graph.json"
 }
 ```
 
@@ -78,7 +79,8 @@ CallGraph.cs         Graph data structure containing Node and Edge collections
 
 ## Development Notes
 
-- The config path in `Program.cs:23` is hardcoded
+- The config path in `Program.cs:26` is hardcoded
 - RTA analyzer (`RtaAnalyzer.cs`) throws `NotImplementedException`
 - Only `DOTNET_MAIN` entrypoint strategy is implemented; others need work in `Workspace.DetermineEntryPoints()`
-- Async methods are handled specially - the analyzer looks for `AsyncStateMachineAttribute` and analyzes the `MoveNext` method of the state machine type
+- Async and iterator methods are handled specially - the analyzer looks for `AsyncStateMachineAttribute` and `IteratorStateMachineAttribute` and analyzes the `MoveNext` method of the state machine type
+- Output formats: JSON (full call graph) and DOT (limited edges for visualization)
