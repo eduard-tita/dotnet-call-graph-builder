@@ -29,8 +29,8 @@ namespace CallGraphBuilder
             string configFilePath = "D:\\projects-misc\\dotnet-call-graph-builder\\config.json"; // Path to the configuration file
             var config = await Config.LoadFromFileAsync(configFilePath);
             
-            Workspace workspace = new();
-            workspace.Initialize(config);
+            Workspace workspace = new(config);
+            workspace.Initialize();
 
             CallGraph callGraph = workspace.BuildCallGraph(); 
             

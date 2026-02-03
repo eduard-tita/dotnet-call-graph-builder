@@ -1,7 +1,7 @@
 {
   "BinaryPath": "D:\\projects-misc\\dotnet-callgraph-01\\ConsoleApp\\bin\\Debug\\net8.0",
   "Namespaces": [ "ConsoleApp" ],
-  "Algorithm": "CHA",
+  "Algorithm": "RTA",
   "EntrypointStrategy": "DOTNET_MAIN",
   "JsonOutputPath": "D:\\projects-misc\\dotnet-call-graph-builder\\out\\call-graph.json"
 }

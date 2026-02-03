@@ -3,7 +3,7 @@ using Mono.Cecil;
 
 namespace CallGraphBuilder
 {
-    internal class Workspace
+    internal class Workspace(Config config)
     {
         private static readonly ILogger<Workspace> logger;
 
@@ -18,7 +18,7 @@ namespace CallGraphBuilder
             logger = loggerFactory.CreateLogger<Workspace>();
         }
 
-        public Config? Config { get; set; }
+        public Config Config { get; set; } = config;
 
         public IEnumerable<string> AssemblyFiles { get; set; } = [];
 
@@ -26,17 +26,15 @@ namespace CallGraphBuilder
 
         private readonly Queue<MethodDefinition> methodQueue = new Queue<MethodDefinition>();
 
-        public void Initialize(Config config)
+        public void Initialize()
         {
-            Config = config;
-
-            if (!Directory.Exists(config.BinaryPath))
+            if (!Directory.Exists(Config.BinaryPath))
             {
                 logger.LogError($"Directory not found: {config.BinaryPath}.");
-                throw new FileNotFoundException($"Directory not found: {config.BinaryPath}.");
+                throw new FileNotFoundException($"Directory not found: {Config.BinaryPath}.");
             }
 
-            AssemblyFiles = Directory.GetFiles(config.BinaryPath, "*.*", SearchOption.AllDirectories).Where(file => file.EndsWith(".dll"));
+            AssemblyFiles = Directory.GetFiles(Config.BinaryPath, "*.*", SearchOption.AllDirectories).Where(file => file.EndsWith(".dll"));
 
             var count = AssemblyFiles.Count();
             if (count == 0)
@@ -66,13 +64,12 @@ namespace CallGraphBuilder
             return callGraph;
         }
 
-        private CallGraph BuildCallGraph(Analyzer analyzer, CallGraph callGraph)
+        private void BuildCallGraph(Analyzer analyzer, CallGraph callGraph)
         {
             while (methodQueue.Count > 0) { 
                 var methodDefinition = methodQueue.Dequeue();
                 analyzer.InspectMethod(methodDefinition, callGraph);
             }
-            return analyzer.CallGraph;
         }
 
         private void DetermineEntryPoints()
@@ -149,7 +146,7 @@ namespace CallGraphBuilder
         {
             if (Config?.Namespaces is null || Config?.Namespaces.Count == 0) return true;
 
-            foreach (string item in Config?.Namespaces)
+            foreach (var item in Config?.Namespaces)
             {
                 if (typeNamespace == item || typeNamespace.StartsWith(item + '.'))
                 {

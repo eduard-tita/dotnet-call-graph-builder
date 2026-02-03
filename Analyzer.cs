@@ -17,11 +17,11 @@ namespace CallGraphBuilder
                 builder.SetMinimumLevel(LogLevel.Information);
             });
             logger = loggerFactory.CreateLogger<Analyzer>();
-        }        
+        }
 
-        public CallGraph CallGraph { get; set; }
+        protected CallGraph CallGraph { get; set; }
 
-        public Queue<MethodDefinition> MethodQueue { get; set; }
+        protected Queue<MethodDefinition> MethodQueue { get; set; }
 
         protected readonly ISet<string> signatures = new HashSet<string>();
 
