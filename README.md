@@ -156,12 +156,10 @@ The application reads settings from a `config.json` file:
 | Property | Description |
 |----------|-------------|
 | `BinaryPath` | Directory containing .NET assemblies (.dll files) to analyze |
-| `Namespaces` | Filter to limit analysis scope (currently unused) |
-| `Algorithm` | Analysis algorithm: `CHA` (implemented) or `RTA` (not yet implemented) |
+| `Namespaces` | Filter to limit analysis to types in these namespaces (exact match or prefix) |
+| `Algorithm` | Analysis algorithm: `CHA` or `RTA` |
 | `EntrypointStrategy` | How to determine analysis starting points: `DOTNET_MAIN`, `PUBLIC_CONCRETE`, `ACCESSIBLE_CONCRETE`, `CONCRETE`, `ALL` |
 | `JsonOutputPath` | File path for JSON output |
-
-**Note:** Currently only `DOTNET_MAIN` entrypoint strategy is implemented.
 
 ## Output
 

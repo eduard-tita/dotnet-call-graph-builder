@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -23,19 +24,23 @@ namespace CallGraphBuilder
 
         static async Task Main(string[] args)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             string configFilePath = "D:\\projects-misc\\dotnet-call-graph-builder\\config.json"; // Path to the configuration file
             var config = await Config.LoadFromFileAsync(configFilePath);
-            config.PrintOut(logger);
             
             Workspace workspace = new();
             workspace.Initialize(config);
 
-            CallGraph callGraph = AnalyzeWorkspace(workspace);
+            CallGraph callGraph = workspace.BuildCallGraph(); 
             
             WriteCallGraphToJson(callGraph, config.JsonOutputPath);
 
             // Useful for visualization, but you have to limit the number of edges exported
             WriteCallGraphToDot(callGraph, "D:\\projects-misc\\dotnet-call-graph-builder\\out\\graph.dot", 50);
+
+            var stats = new Statistics(config, callGraph, stopwatch.Elapsed);
+            stats.PrintOut(logger);
         }
 
         private static void WriteCallGraphToDot(CallGraph callGraph, string filePath, int edgeCount)
@@ -73,14 +78,6 @@ namespace CallGraphBuilder
             };
             var json = JsonSerializer.Serialize(callGraph, options);
             File.WriteAllText(filePath, json);
-        }
-
-        private static CallGraph AnalyzeWorkspace(Workspace workspace)
-        {
-            CallGraph callGraph = workspace.BuildCallGraph();
-            callGraph.PrintOut(logger);
-
-            return callGraph;
         }
     }
 }

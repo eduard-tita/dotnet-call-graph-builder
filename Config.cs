@@ -43,21 +43,6 @@ namespace CallGraphBuilder
                 throw new IOException(msg);                
             }
             return config;
-        }
-
-        public void PrintOut(ILogger logger)
-        {
-            StringBuilder sb = new("\n", 128);
-
-            sb.Append("============== Configuration ============\n");
-            sb.Append($"Binary Path: {BinaryPath}\n");
-            sb.Append($"Namespaces: {string.Join(", ", Namespaces ?? [])}\n");
-            sb.Append($"Algorithm: {Algorithm}\n");
-            sb.Append($"Entrypoint Strategy: {EntrypointStrategy}\n");
-            sb.Append($"Json Output Path: {JsonOutputPath}\n");
-            sb.Append("=========================================\n");
-
-            logger.LogInformation(sb.ToString());
-        }
+        }        
     }
 }

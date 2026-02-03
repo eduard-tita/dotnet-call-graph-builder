@@ -27,6 +27,9 @@ namespace CallGraphBuilder
 
         protected readonly IList<ModuleDefinition> AllModules;
 
+        // RTA: Track instantiated types by FullName for efficient lookup
+        protected readonly ISet<string> InstantiatedTypes = new HashSet<string>();
+
         protected Analyzer(CallGraph callGraph, Queue<MethodDefinition> methodQueue, IList<ModuleDefinition> allModules)
         {
             CallGraph = callGraph;
@@ -121,10 +124,9 @@ namespace CallGraphBuilder
                         continue;
                     }
 
-                    // TODO fix this
                     // RTA: Track instantiated type
-                    //var instantiatedType = constructorDefinition.DeclaringType;
-                    //_instantiatedTypes.Add(instantiatedType); // internally guarded by a Contains() call                    
+                    var instantiatedType = constructorDefinition.DeclaringType;
+                    InstantiatedTypes.Add(instantiatedType.FullName);
 
                     // Constructors are not virtual - add directly
                     var edge = CreateMethodEdge(methodIdentifier, constructorDefinition.FullName);

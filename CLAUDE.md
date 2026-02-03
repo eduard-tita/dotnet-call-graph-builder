@@ -22,7 +22,7 @@ No test suite or linting configuration exists in this project.
 CallGraphBuilder is a .NET 8.0 console application that performs static analysis on .NET assemblies using Mono.Cecil to generate call graphs. It supports two algorithms for resolving virtual method call targets:
 
 - **CHA (Class Hierarchy Analysis)**: Uses inheritance tree to resolve virtual calls. Fast but less precise (includes all subtypes in hierarchy).
-- **RTA (Rapid Type Analysis)**: Tracks actually instantiated types. More precise but not yet implemented.
+- **RTA (Rapid Type Analysis)**: Tracks actually instantiated types. More precise than CHA as it only considers types with `newobj` calls.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ Workspace.cs         Orchestrator - loads assemblies, determines entrypoints, cr
 Analyzer.cs          Abstract base - inspects methods, handles IL opcodes (Call, Callvirt, Newobj, etc.)
     │
     ├─► ChaAnalyzer.cs    Implements ApplyAlgorithm() for virtual call resolution via type hierarchy
-    └─► RtaAnalyzer.cs    TODO: Not yet implemented
+    └─► RtaAnalyzer.cs    Implements ApplyAlgorithm() filtering by instantiated types only
             │
             ▼
 CallGraph.cs         Graph data structure containing Node and Edge collections
@@ -66,11 +66,11 @@ CallGraph.cs         Graph data structure containing Node and Edge collections
 ```
 
 **EntrypointStrategy options** (defined in `EntrypointStrategy.cs`):
-- `DOTNET_MAIN` - Uses assembly entry points (currently the only implemented strategy)
+- `DOTNET_MAIN` - Uses assembly entry points
 - `PUBLIC_CONCRETE` - Public non-abstract methods from concrete classes
-- `ACCESSIBLE_CONCRETE` - Public/protected non-abstract methods
+- `ACCESSIBLE_CONCRETE` - Public/protected/protected-internal non-abstract methods
 - `CONCRETE` - All non-abstract methods
-- `ALL` - All methods from all classes
+- `ALL` - All methods (including abstract, getters/setters)
 
 ## Dependencies
 
@@ -81,7 +81,6 @@ CallGraph.cs         Graph data structure containing Node and Edge collections
 ## Development Notes
 
 - The config path in `Program.cs:26` and DOT output path in `Program.cs:38` are hardcoded
-- RTA analyzer (`RtaAnalyzer.cs`) throws `NotImplementedException`
-- Only `DOTNET_MAIN` entrypoint strategy is implemented; others need work in `Workspace.DetermineEntryPoints()`
 - Async and iterator methods are handled specially - the analyzer looks for `AsyncStateMachineAttribute` and `IteratorStateMachineAttribute` and analyzes the `MoveNext` method of the state machine type
 - Output formats: JSON (full call graph) and DOT (limited edges for visualization)
+- Namespace filtering excludes interfaces and attribute classes (including derived attributes)
