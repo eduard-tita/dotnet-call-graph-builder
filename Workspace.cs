@@ -60,7 +60,7 @@ namespace CallGraphBuilder
             Analyzer analyzer = Config?.Algorithm == "CHA"
                 ? new ChaAnalyzer(callGraph, methodQueue, moduleDefinitions)
                 : new RtaAnalyzer(callGraph, methodQueue, moduleDefinitions);
-            
+
             BuildCallGraph(analyzer, callGraph);
 
             return callGraph;
@@ -77,18 +77,65 @@ namespace CallGraphBuilder
 
         private void DetermineEntryPoints()
         {
+            // Iterate through all loaded modules
             foreach (var md in moduleDefinitions)
             {
                 if (Config?.EntrypointStrategy == EntrypointStrategy.DOTNET_MAIN)
                 {
                     MethodDefinition? entryPoint = md.EntryPoint;
                     if (entryPoint is null) continue;
+
+                    if (!IsNamespaceMatch(entryPoint.DeclaringType.Namespace)) continue;
+
                     methodQueue.Enqueue(entryPoint);
                 }
                 else
                 {
-                    // TODO implement all other EntrypointStrategy values
-                    // we have to inspect all types
+                    // Iterate through all types (including nested types)
+                    foreach (var type in Analyzer.GetAllTypesRecursive(md.Types))
+                    {
+                        if (!IsNamespaceMatch(type.Namespace)) continue;
+
+                        // filter out interfaces and attribute classes
+                        if (type.IsInterface || IsAttributeType(type)) continue;
+
+                        logger.LogInformation($" >>> Analyzing type: {type.FullName}");
+                        foreach (var method in type.Methods)
+                        {
+                            // filter out property accessor methods(equivalent to Java synthetic methods), if Entrypoint Strategy != ALL
+                            if (Config?.EntrypointStrategy != EntrypointStrategy.ALL && (method.IsGetter || method.IsSetter)) continue;
+
+                            if (Config?.EntrypointStrategy == EntrypointStrategy.PUBLIC_CONCRETE)
+                            {
+                                // Selects public non-abstract/synthetic methods from non-interface/annotation classes
+                                if (method.IsPublic && !method.IsAbstract)
+                                {
+                                    methodQueue.Enqueue(method);
+                                }
+                            }
+                            else if (Config?.EntrypointStrategy == EntrypointStrategy.ACCESSIBLE_CONCRETE)
+                            {
+                                // Selects public/protected non-abstract/synthetic methods from non-interface/annotation classes
+                                if ((method.IsPublic || method.IsFamily || method.IsFamilyOrAssembly) && !method.IsAbstract)
+                                {
+                                    methodQueue.Enqueue(method);
+                                }
+                            }
+                            else if (Config?.EntrypointStrategy == EntrypointStrategy.CONCRETE)
+                            {
+                                // Selects all non-abstract/synthetic methods from non-interface/annotation classes
+                                if (!method.IsAbstract)
+                                {
+                                    methodQueue.Enqueue(method);
+                                }
+                            }
+                            else // EntrypointStrategy.ALL
+                            {
+                                // Selects all methods from all non-interface/annotation classes
+                                methodQueue.Enqueue(method);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -96,6 +143,34 @@ namespace CallGraphBuilder
             {
                 logger.LogInformation($"in queue: {item.FullName}");
             }
+        }
+
+        private bool IsNamespaceMatch(string typeNamespace)
+        {
+            if (Config?.Namespaces is null || Config?.Namespaces.Count == 0) return true;
+
+            foreach (string item in Config?.Namespaces)
+            {
+                if (typeNamespace == item || typeNamespace.StartsWith(item + '.'))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool IsAttributeType(TypeDefinition type)
+        {
+            var currentType = type.BaseType?.Resolve();
+            while (currentType != null)
+            {
+                if (currentType.FullName == "System.Attribute")
+                {
+                    return true;
+                }
+                currentType = currentType.BaseType?.Resolve();
+            }
+            return false;
         }
 
         private void CollectModuleDefinitions()

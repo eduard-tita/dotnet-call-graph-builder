@@ -334,7 +334,7 @@ namespace CallGraphBuilder
             return false;
         }
 
-        private static IEnumerable<TypeDefinition> GetAllTypesRecursive(IEnumerable<TypeDefinition> types)
+        public static IEnumerable<TypeDefinition> GetAllTypesRecursive(IEnumerable<TypeDefinition> types)
         {
             foreach (var type in types)
             {

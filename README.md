@@ -168,4 +168,4 @@ The application reads settings from a `config.json` file:
 The tool produces two output formats:
 
 1. **JSON** - Complete call graph with nodes (methods) and edges (caller→callee relationships)
-2. **DOT** - GraphViz format for visualization (limited to configurable edge count)
+2. **DOT** - GraphViz format for visualization (currently limited to 50 edges, hardcoded in Program.cs)

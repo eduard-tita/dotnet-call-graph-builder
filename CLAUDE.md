@@ -76,10 +76,11 @@ CallGraph.cs         Graph data structure containing Node and Edge collections
 
 - **Mono.Cecil** - Assembly reading and IL analysis
 - **Microsoft.Extensions.Logging** - Logging infrastructure
+- **Microsoft.Extensions.Logging.Console** - Console logging provider
 
 ## Development Notes
 
-- The config path in `Program.cs:26` is hardcoded
+- The config path in `Program.cs:26` and DOT output path in `Program.cs:38` are hardcoded
 - RTA analyzer (`RtaAnalyzer.cs`) throws `NotImplementedException`
 - Only `DOTNET_MAIN` entrypoint strategy is implemented; others need work in `Workspace.DetermineEntryPoints()`
 - Async and iterator methods are handled specially - the analyzer looks for `AsyncStateMachineAttribute` and `IteratorStateMachineAttribute` and analyzes the `MoveNext` method of the state machine type
