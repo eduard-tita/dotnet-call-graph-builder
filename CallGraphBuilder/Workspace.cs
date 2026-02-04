@@ -56,8 +56,8 @@ namespace CallGraphBuilder
             CallGraph callGraph = new();
 
             Analyzer analyzer = Config?.Algorithm == "CHA"
-                ? new ChaAnalyzer(callGraph, methodQueue, moduleDefinitions)
-                : new RtaAnalyzer(callGraph, methodQueue, moduleDefinitions);
+                ? new ChaAnalyzer(callGraph, methodQueue, moduleDefinitions, Config.Namespaces)
+                : new RtaAnalyzer(callGraph, methodQueue, moduleDefinitions, Config.Namespaces);
 
             BuildCallGraph(analyzer, callGraph);
 

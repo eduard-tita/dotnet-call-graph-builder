@@ -30,11 +30,15 @@ namespace CallGraphBuilder
         // RTA: Track instantiated types by FullName for efficient lookup
         protected readonly ISet<string> InstantiatedTypes = new HashSet<string>();
 
-        protected Analyzer(CallGraph callGraph, Queue<MethodDefinition> methodQueue, IList<ModuleDefinition> allModules)
+        // Namespace filtering
+        protected readonly List<string> Namespaces;
+
+        protected Analyzer(CallGraph callGraph, Queue<MethodDefinition> methodQueue, IList<ModuleDefinition> allModules, List<string> namespaces)
         {
             CallGraph = callGraph;
             MethodQueue = methodQueue;
             AllModules = allModules;
+            Namespaces = namespaces;
         }
 
         internal void InspectMethod(MethodDefinition method, CallGraph callGraph)
@@ -66,8 +70,8 @@ namespace CallGraphBuilder
                     var edge = CreateMethodEdge(methodIdentifier, moveNextMethod.FullName);
                     CallGraph.Edges.Add(edge);
 
-                    // Queue MoveNext for separate analysis
-                    if (!signatures.Contains(moveNextMethod.FullName))
+                    // Queue MoveNext for separate analysis (respecting namespace boundaries)
+                    if (!signatures.Contains(moveNextMethod.FullName) && ShouldAnalyzeMethod(moveNextMethod))
                     {
                         MethodQueue.Enqueue(moveNextMethod);
                     }
@@ -94,7 +98,11 @@ namespace CallGraphBuilder
                     var edge = CreateMethodEdge(methodIdentifier, targetMethodDefinition.FullName);
                     CallGraph.Edges.Add(edge);
 
-                    MethodQueue.Enqueue(targetMethodDefinition);
+                    // Only analyze methods within configured namespaces
+                    if (ShouldAnalyzeMethod(targetMethodDefinition))
+                    {
+                        MethodQueue.Enqueue(targetMethodDefinition);
+                    }
                 }
                 else if (instruction.OpCode == OpCodes.Callvirt || instruction.OpCode == OpCodes.Ldvirtftn)
                 {
@@ -132,12 +140,42 @@ namespace CallGraphBuilder
                     var edge = CreateMethodEdge(methodIdentifier, constructorDefinition.FullName);
                     CallGraph.Edges.Add(edge);
 
-                    MethodQueue.Enqueue(constructorDefinition);
+                    // Only analyze constructors within configured namespaces
+                    if (ShouldAnalyzeMethod(constructorDefinition))
+                    {
+                        MethodQueue.Enqueue(constructorDefinition);
+                    }
                 }
             }
         }
 
         protected abstract void ApplyAlgorithm(MethodDefinition targetMethod, Node callerMethodNode);
+
+        /// <summary>
+        /// Checks if a method's namespace matches the configured namespaces for analysis.
+        /// If no namespaces are configured, all methods match.
+        /// </summary>
+        protected bool IsNamespaceMatch(string typeNamespace)
+        {
+            if (Namespaces == null || Namespaces.Count == 0) return true;
+
+            foreach (var item in Namespaces)
+            {
+                if (typeNamespace == item || typeNamespace.StartsWith(item + '.'))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if a method should be analyzed based on namespace filtering.
+        /// </summary>
+        protected bool ShouldAnalyzeMethod(MethodDefinition method)
+        {
+            return IsNamespaceMatch(method.DeclaringType.Namespace);
+        }
 
         private static IEnumerable<Instruction> GetMethodInstructions(MethodDefinition method)
         {

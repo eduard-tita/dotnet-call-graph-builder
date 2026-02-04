@@ -10,8 +10,8 @@ namespace CallGraphBuilder
     /// </summary>
     internal class RtaAnalyzer : Analyzer
     {
-        public RtaAnalyzer(CallGraph callGraph, Queue<MethodDefinition> methodQueue, IList<ModuleDefinition> allModules)
-            : base(callGraph, methodQueue, allModules) { }
+        public RtaAnalyzer(CallGraph callGraph, Queue<MethodDefinition> methodQueue, IList<ModuleDefinition> allModules, List<string> namespaces)
+            : base(callGraph, methodQueue, allModules, namespaces) { }
 
         protected override void ApplyAlgorithm(MethodDefinition targetMethod, Node callerMethodNode)
         {
@@ -90,7 +90,8 @@ namespace CallGraphBuilder
                 var edge = CreateMethodEdge(callerMethodNode.Signature, possibleMethod.FullName);
                 CallGraph.Edges.Add(edge);
 
-                if (!signatures.Contains(possibleMethod.FullName))
+                // Only analyze methods within configured namespaces
+                if (!signatures.Contains(possibleMethod.FullName) && ShouldAnalyzeMethod(possibleMethod))
                 {
                     MethodQueue.Enqueue(possibleMethod);
                 }
