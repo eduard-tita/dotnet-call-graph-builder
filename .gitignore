@@ -55,5 +55,5 @@ nunit-*.xml
 /.claude/settings.local.json
 
 # manually added
-/.vs/CallGraphBuilder
+.vs/
 out/
