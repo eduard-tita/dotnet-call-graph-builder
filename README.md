@@ -112,7 +112,7 @@ RTA improves on CHA by tracking which types are actually instantiated in the pro
 
 **How It Works**
 
-1. Build a set of instantiated types - Scan the program for new expressions (or newobj in IL) and record which concrete types are created
+1. Build a set of instantiated types - Scan the program for type instantiations and record which concrete types are created. This includes `newobj` (constructor calls), `initobj` (struct default initialization like `default(T)`), and `newarr` (array creation with struct element types)
 2. Resolve virtual calls - When analyzing a virtual call on type T, only consider implementations from types that:
   - Are subtypes of T, AND
   - Are in the instantiated set (or have a subtype that's instantiated)

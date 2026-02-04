@@ -134,6 +134,49 @@ namespace CallGraphBuilder
 
                     MethodQueue.Enqueue(constructorDefinition);
                 }
+                else if (instruction.OpCode == OpCodes.Initobj)
+                {
+                    // Handle struct default initialization (e.g., default(MyStruct), new MyStruct())
+                    // Unlike newobj, initobj's operand is a TypeReference, not a MethodReference
+                    var typeReference = (TypeReference)instruction.Operand;
+
+                    // Skip generic type parameters (e.g., default(T)) - can't resolve concrete type statically
+                    if (typeReference.IsGenericParameter)
+                    {
+                        continue;
+                    }
+
+                    logger.LogInformation($"  {instruction.OpCode}: {typeReference.FullName}");
+
+                    var typeDefinition = typeReference.Resolve();
+                    if (typeDefinition == null)
+                    {
+                        continue; // Failed to resolve type; continue analysis
+                    }
+
+                    // RTA: Track instantiated type (struct initialized to default value)
+                    InstantiatedTypes.Add(typeDefinition.FullName);
+                }
+                else if (instruction.OpCode == OpCodes.Newarr)
+                {
+                    // Handle array creation - if element type is a struct, all elements are default-initialized
+                    // newarr's operand is the element TypeReference
+                    var elementTypeReference = (TypeReference)instruction.Operand;
+                    var elementTypeDefinition = elementTypeReference.Resolve();
+
+                    if (elementTypeDefinition == null)
+                    {                        
+                        continue; // Failed to resolve array element type; continue analysis
+                    }
+
+                    // RTA: Track instantiated type only if it's a value type (struct)
+                    // Reference type arrays don't instantiate the element type - they just hold null references
+                    if (elementTypeDefinition.IsValueType && !elementTypeDefinition.IsPrimitive && !elementTypeDefinition.IsEnum)
+                    {
+                        logger.LogInformation($"  {instruction.OpCode}: {elementTypeReference.FullName}[] (struct array)");
+                        InstantiatedTypes.Add(elementTypeDefinition.FullName);
+                    }
+                }
             }
         }
 

@@ -22,7 +22,7 @@ No test suite or linting configuration exists in this project.
 CallGraphBuilder is a .NET 8.0 console application that performs static analysis on .NET assemblies using Mono.Cecil to generate call graphs. It supports two algorithms for resolving virtual method call targets:
 
 - **CHA (Class Hierarchy Analysis)**: Uses inheritance tree to resolve virtual calls. Fast but less precise (includes all subtypes in hierarchy).
-- **RTA (Rapid Type Analysis)**: Tracks actually instantiated types. More precise than CHA as it only considers types with `newobj` calls.
+- **RTA (Rapid Type Analysis)**: Tracks actually instantiated types. More precise than CHA as it only considers types that are actually instantiated (`newobj` for classes, `initobj` for default struct initialization, `newarr` for struct arrays).
 
 ## Architecture
 
@@ -55,7 +55,7 @@ CallGraphBuilder/
 ### Key Classes
 
 - **Workspace**: Loads assemblies from `BinaryPath`, resolves modules, manages the method processing queue
-- **Analyzer**: Base class that traverses IL instructions. Handles `Call`/`Callvirt`/`Newobj`/`Ldftn`/`Ldvirtftn` opcodes. Delegates virtual call resolution to subclasses via `ApplyAlgorithm()`
+- **Analyzer**: Base class that traverses IL instructions. Handles `Call`/`Callvirt`/`Newobj`/`Initobj`/`Newarr`/`Ldftn`/`Ldvirtftn` opcodes. Delegates virtual call resolution to subclasses via `ApplyAlgorithm()`
 - **ChaAnalyzer**: For virtual calls, finds all derived types (classes) or implementing types (interfaces) and adds edges for each possible target
 - **CallGraph/Node/Edge**: Simple graph model where nodes are methods (identified by `FullMethodName`) and edges are caller→callee relationships
 
@@ -100,3 +100,4 @@ CallGraphBuilder/
 - **Method Hiding vs Override**: Checks `IsNewSlot` flag to distinguish `new` from `override`
 - **Covariant Return Types**: C# 9+ feature supported via compatible return type checking
 - **Default Interface Methods**: C# 8+ feature - includes interface methods with `HasBody`
+- **Struct Instantiation (RTA)**: Tracks struct types via `initobj` (default initialization) and `newarr` (struct arrays), not just `newobj`
