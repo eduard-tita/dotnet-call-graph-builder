@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "CallGraphBuilder": {
+      "commandName": "Project",
+      "commandLineArgs": "config.json",
+      "workingDirectory": "D:\\projects-misc\\dotnet-call-graph-builder"
+    }
+  }
+}

@@ -27,6 +27,8 @@ namespace CallGraphBuilder
 
         public static async Task<Config> LoadFromFileAsync(string configFilePath)
         {
+            configFilePath = Path.GetFullPath(configFilePath);
+
             if (!File.Exists(configFilePath))
             {
                 var msg = $"Configuration file not found: {configFilePath}";

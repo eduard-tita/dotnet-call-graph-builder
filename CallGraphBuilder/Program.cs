@@ -24,9 +24,15 @@ namespace CallGraphBuilder
 
         static async Task Main(string[] args)
         {
+            if (args.Length != 1)
+            {
+                logger.LogInformation("Usage: CallGraphBuilder <config.json>\n  <config.json>  Path to the configuration file (can be a relative path)");
+                return;
+            }
+
             var stopwatch = Stopwatch.StartNew();
 
-            string configFilePath = "D:\\projects-misc\\dotnet-call-graph-builder\\config.json"; // Path to the configuration file
+            string configFilePath = args[0];
             var config = await Config.LoadFromFileAsync(configFilePath);
             
             Workspace workspace = new(config);
@@ -36,8 +42,8 @@ namespace CallGraphBuilder
             
             WriteCallGraphToJson(callGraph, config.JsonOutputPath);
 
-            // Useful for visualization, but you have to limit the number of edges exported
-            WriteCallGraphToDot(callGraph, "D:\\projects-misc\\dotnet-call-graph-builder\\out\\graph.dot", 50);
+            // Useful for visualization, but you have to limit the number of edges exported; comment it out if not needed
+            WriteCallGraphToDot(callGraph, config.JsonOutputPath, 50);
 
             var stats = new Statistics(config, callGraph, stopwatch.Elapsed);
             stats.PrintOut(logger);
@@ -45,7 +51,17 @@ namespace CallGraphBuilder
 
         private static void WriteCallGraphToDot(CallGraph callGraph, string filePath, int edgeCount)
         {
-            logger.LogInformation($"Writing results to {filePath}...");
+            string dotFilePath = Path.GetFullPath(filePath);
+            if (dotFilePath.LastIndexOf('\\') > 0)
+            {
+                dotFilePath = dotFilePath.Substring(0, dotFilePath.LastIndexOf('\\')) + "\\graph.dot";
+            }
+            else
+            {
+                dotFilePath = dotFilePath.Substring(0, dotFilePath.LastIndexOf('/')) + "/graph.dot";
+            }
+            logger.LogInformation($"Writing results to {dotFilePath}...");
+
             StringBuilder dot = new("digraph G {\n");
             int index = 0;            
             var en = callGraph.Edges.GetEnumerator();
@@ -64,7 +80,7 @@ namespace CallGraphBuilder
                 index++;
             }
             dot.AppendLine("}");
-            File.WriteAllText(filePath, dot.ToString());
+            File.WriteAllText(dotFilePath, dot.ToString());
         }
 
         private static void WriteCallGraphToJson(CallGraph callGraph, string filePath)
