@@ -30,7 +30,7 @@ namespace CallGraphBuilder
         {
             if (!Directory.Exists(Config.BinaryPath))
             {
-                logger.LogError($"Directory not found: {config.BinaryPath}.");
+                logger.LogError($"Directory not found: {Config.BinaryPath}.");
                 throw new FileNotFoundException($"Directory not found: {Config.BinaryPath}.");
             }
 
@@ -144,9 +144,10 @@ namespace CallGraphBuilder
 
         private bool IsNamespaceMatch(string typeNamespace)
         {
-            if (Config?.Namespaces is null || Config?.Namespaces.Count == 0) return true;
+            var namespaces = Config?.Namespaces;
+            if (namespaces is null || namespaces.Count == 0) return true;
 
-            foreach (var item in Config?.Namespaces)
+            foreach (var item in namespaces)
             {
                 if (typeNamespace == item || typeNamespace.StartsWith(item + '.'))
                 {

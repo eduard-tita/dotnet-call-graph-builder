@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -30,22 +29,21 @@ namespace CallGraphBuilder
                 return;
             }
 
-            var stopwatch = Stopwatch.StartNew();
-
             string configFilePath = args[0];
             var config = await Config.LoadFromFileAsync(configFilePath);
-            
+
             Workspace workspace = new(config);
             workspace.Initialize();
 
-            CallGraph callGraph = workspace.BuildCallGraph(); 
-            
+            CallGraph callGraph = workspace.BuildCallGraph();
+
             WriteCallGraphToJson(callGraph, config.JsonOutputPath);
 
             // Useful for visualization, but you have to limit the number of edges exported; comment it out if not needed
             WriteCallGraphToDot(callGraph, config.JsonOutputPath, 50);
 
-            var stats = new Statistics(config, callGraph, stopwatch.Elapsed);
+            var stats = new Statistics(config, callGraph);
+            stats.CaptureMetrics();
             stats.PrintOut(logger);
         }
 
